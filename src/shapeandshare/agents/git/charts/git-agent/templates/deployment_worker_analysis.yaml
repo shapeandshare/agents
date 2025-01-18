@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "git-agent-service-installer.fullname" . }}-analysis-worker
+  labels:
+    {{- include "git-agent-service-installer.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "git-agent-service-installer.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "git-agent-service-installer.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "git-agent-service-installer.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: OPENAI_API_KEY
+              value: "{{ .Values.openAiKey }}"
+            - name: HASH_KEY
+              value: "{{ .Values.hashKey }}"
+            - name: AGENT_DEBUG
+              value: "{{ .Values.agentDebug }}"
+            - name: DATA_BASE_DIR
+              value: "{{ .Values.dataBaseDir }}"
+            - name: HF_HOME
+              value: "{{ .Values.HfHome }}"
+            - name: TOKENIZERS_PARALLELISM
+              value: "{{ .Values.tokenizersParallelism }}"
+            - name: CHROMA_CACHE_DIR
+              value: "{{ .Values.chromaDbCache }}"
+            - name: ANONYMIZED_TELEMETRY
+              value: "False"
+            - name: CHROMADB_HOSTNAME
+              value: "{{ .Values.chromaDbServerHostname }}"
+            - name: CHROMADB_PORT
+              value: "{{ .Values.chromaDbServerPort }}"
+            - name: MONGODB_HOSTNAME
+              value: "{{ .Values.mongoDbHostname }}"
+            - name: MONGODB_PORT
+              value: "{{ .Values.mongoDbPort }}"
+            - name: MONGODB_DATABASE
+              value: "{{ .Values.mongoDbDatabase }}"
+            - name: MONGODB_USERNAME
+              value: "{{ .Values.mongoDbUser }}"
+            - name: MONGODB_PASSWORD
+              value: "{{ .Values.mongoDbPassword }}"
+            - name: RABBITMQ_HOSTNAME
+              value: "{{ .Values.rabbitMqHostname }}"
+            - name: RABBITMQ_PORT
+              value: "{{ .Values.rabbitMqPort }}"
+            - name: RABBITMQ_USERNAME
+              value: "{{ .Values.rabbitMqUser }}"
+            - name: RABBITMQ_PASSWORD
+              value: "{{ .Values.rabbitMqPassword }}"
+            - name: RABBITMQ_QUEUE
+              value: "{{ .Values.rabbitMqQueue }}"
+            - name: CHATHISTORY_SERVICE_SLEEP_TIME
+              value: "{{ .Values.chatHistoryServiceSleepTime }}"
+            - name: CHATHISTORY_SERVICE_RETRY_COUNT
+              value: "{{ .Values.chatHistoryServiceRetryCount }}"
+            - name: CHATHISTORY_SERVICE_SCHEME
+              value: "{{ .Values.chatHisotryServiceScheme }}"
+            - name: CHATHISTORY_SERVICE_TLD
+              value: "{{ .Values.chatHistoryServiceTld }}"
+            - name: CHATHISTORY_SERVICE_TIMEOUT
+              value: "{{ .Values.chatHistoryServiceTimeout }}"
+            - name: AGENT_GIT_SLEEP_TIME
+              value: "{{ .Values.agentGitServiceSleepTime }}"
+            - name: AGENT_GIT_RETRY_COUNT
+              value: "{{ .Values.agentGitServiceRetryCount }}"
+            - name: AGENT_GIT_TLD
+              value: "{{ .Values.agentGitServiceTld }}"
+            - name: AGENT_GIT_SCHEME
+              value: "{{ .Values.agentGitServiceScheme }}"
+            - name: AGENT_GIT_TIMEOUT
+              value: "{{ .Values.agentGitServiceTimeout }}"
+            - name: LLM_HYPERPARAMETER_MODEL
+              value: "{{ .Values.llmHyperparameterModel }}"
+            - name: LLM_HYPERPARAMETER_TEMPERATURE
+              value: "{{ .Values.llmHyperparameterTemperature }}"
+            - name: LLM_HYPERPARAMETER_MAX_TOKENS
+              value: "{{ .Values.llmHyperparameterMaxTokens }}"
+            - name: LLM_HYPERPARAMETER_TIMEOUT
+              value: "{{ .Values.llmHyperparameterTimeout }}"
+            - name: LLM_HYPERPARAMETER_RETRIES
+              value: "{{ .Values.llmHyperparameterRetries }}"
+          command:
+            - git-agent-worker-analysis
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

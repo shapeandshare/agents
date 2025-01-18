@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.isort]
+py_version = "all"
+line_length = 120
+profile = "black"
+src_paths = ["src","test"]
+known_first_party = "shapeandshare"
+
+
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+
+
+[project]
+name = "shapeandshare.agents"
+version = "0.1.0"
+authors = [
+  { name="Joshua C. Burt", email="joshburt@shapeandshare.com" },
+]
+license.file = "LICENSE"
+description = "Agents"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = ["fastapi[standard]", "pydantic", "uvicorn", "requests", "click", "chromadb", "gitpython", "langchain", "langchain-community", "python-dotenv", "openai", "sentence-transformers", "langchain_openai"]
+
+[project.scripts]
+git-agent-service = "shapeandshare.agents.git.api.main:main"
+git-agent-worker-repository = "shapeandshare.agents.git.workers.repository:main"
+git-agent-worker-analysis = "shapeandshare.agents.git.workers.analysis:main"
+chathistory-service = "shapeandshare.agents.core.services.chathistory.api.main:main"
+
+[project.urls]
+Homepage = "https://github.com/shapeandshare/agents"
+Issues = "https://github.com/shapeandshare/agents/issues"
